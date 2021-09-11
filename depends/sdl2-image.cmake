@@ -39,7 +39,7 @@ add_library(sdl2-image-impl
         ${sdl2-image_SOURCE_DIR}/IMG_lbm.c
         ${sdl2-image_SOURCE_DIR}/SDL_image.h)
 target_link_libraries(sdl2-image-impl PRIVATE ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${TIFF_LIBRARIES} SDL2)
-target_include_directories(sdl2-image-impl PRIVATE ${JPEG_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${TIFF_INCLUDE_DIRS})
+target_include_directories(sdl2-image-impl PRIVATE ${JPEG_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS} ${TIFF_INCLUDE_DIRS} ${sdl2_SOURCE_DIR}/include)
 target_compile_definitions(sdl2-image-impl PRIVATE LOAD_BMP LOAD_PNG LOAD_JPEG LOAD_GIF LOAD_TGA LOAD_TIF LOAD_SVG)
 
 add_library(sdl2-image-lib INTERFACE)

@@ -2,7 +2,6 @@ include(FetchContent)
 
 FetchContent_Declare(httplib
         GIT_REPOSITORY  https://github.com/yhirose/cpp-httplib
-        GIT_TAG         v0.9.4
         GIT_SHALLOW     TRUE
         SOURCE_DIR      ${CMAKE_BINARY_DIR}/cpp-httplib-0.9.4-src
         )
