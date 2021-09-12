@@ -8,6 +8,19 @@
 #include <httplib.h>
 #include <base64.h>
 
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+Uint32 rmask = 0xff000000;
+Uint32 gmask = 0x00ff0000;
+Uint32 bmask = 0x0000ff00;
+Uint32 amask = 0x000000ff;
+#else
+Uint32 rmask = 0x000000ff;
+Uint32 gmask = 0x0000ff00;
+Uint32 bmask = 0x00ff0000;
+Uint32 amask = 0xff000000;
+#endif
+
 enum class Transitions {
     None,
     Fade,
@@ -58,7 +71,12 @@ void getNewConfig(const std::string &username, const std::string &password, cons
         std::cout << "Getting " << to_extract << std::endl;
         std::ofstream resource(to_extract, std::ifstream::out);
         resource << base64_decode(root_config["result"]["resources"][to_extract].asString(), true);
-        surfaces[to_extract] = IMG_Load(("./"+to_extract).c_str());
+        SDL_Surface* img = IMG_Load(("./"+to_extract).c_str());
+        SDL_SetSurfaceBlendMode(img,SDL_BLENDMODE_NONE);
+        SDL_Surface* surf = SDL_CreateRGBSurface(0,img->w,img->h,32,0,0,0,0);
+        SDL_BlitSurface(img,NULL,surf,NULL);
+        SDL_FreeSurface(img);
+        surfaces[to_extract] = surf;
     }
 
     for (const auto &rule: root_config["result"]["rules"]) {
@@ -223,10 +241,18 @@ int main() {
 
     getNewConfig(username, password, ip, port, name);
 
+    int last_minute = 0;
     // Main loop
 
     while (true) {
         int cur_minute = time(NULL) / 60 % 1440;
+
+        if (last_minute == cur_minute) {
+            continue;
+        }
+        else {
+            last_minute = cur_minute;
+        }
 
         httplib::Client client(ip, port);
 
@@ -256,13 +282,11 @@ int main() {
         }
 
         SDL_Surface* surf = curTimePoint.surf;
-
         if (surf != nullptr) {
             if (curTimePoint.transition == Transitions::None) {
                 SDL_Surface* wnd_surf = SDL_GetWindowSurface(wnd);
                 SDL_BlitScaled(surf, NULL, wnd_surf, NULL);
                 SDL_UpdateWindowSurface(wnd);
-                SDL_FreeSurface(wnd_surf);
             }
             else if (curTimePoint.transition == Transitions::Fade) {
                 doFade(surf,wnd);
@@ -288,19 +312,6 @@ void doSlide(SDL_Surface *pSurface, SDL_Window *pWindow) {
 void doFade(SDL_Surface *pSurface, SDL_Window *pWindow) {
     printf("Doing fade");
     SDL_Surface* window_surf = SDL_GetWindowSurface(pWindow);
-    Uint32 rmask, gmask, bmask, amask;
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
-#else
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
-#endif
 
     SDL_Surface* window_surf_copy = SDL_CreateRGBSurface(0,window_surf->w,window_surf->h,window_surf->format->BitsPerPixel,rmask,gmask,bmask,amask);
     SDL_Surface* window_alpha = SDL_CreateRGBSurface(0,window_surf->w,window_surf->h,window_surf->format->BitsPerPixel,rmask,gmask,bmask,amask);
@@ -315,6 +326,5 @@ void doFade(SDL_Surface *pSurface, SDL_Window *pWindow) {
     }
     SDL_BlitScaled(pSurface,NULL,window_surf,NULL);
     SDL_UpdateWindowSurface(pWindow);
-    SDL_FreeSurface(window_surf);
     SDL_FreeSurface(window_surf_copy);
 }
