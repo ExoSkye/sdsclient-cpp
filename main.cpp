@@ -115,7 +115,7 @@ void getNewConfig(const std::string &username, const std::string &password, cons
             if (every->operator[]("args").size() == 2) {
                 std::string start_str = every->operator[]("args")[1].asString();
                 int start_hours = std::atoi(start_str.substr(0, start_str.find(":")).c_str());
-                int start_mins = std::atoi(start_str.substr(start_str.find(":"), start_str.length()).c_str());
+                int start_mins = std::atoi(start_str.substr(start_str.find(":")+1, start_str.length()).c_str());
 
                 start = start_hours * 60 + start_mins;
             }
@@ -130,8 +130,6 @@ void getNewConfig(const std::string &username, const std::string &password, cons
             else if (period.substr(period.length()-1,period.length()) == "h") {
                 minute_period = std::atoi(period.substr(0,period.length()-1).c_str())*60;
             }
-
-            std::vector<int> times;
 
             for (int i = start; i < 1440; i+=minute_period) {
                 TimePoints[i].surf = surfaces[img];
