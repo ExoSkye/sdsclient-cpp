@@ -74,7 +74,7 @@ void getNewConfig(const std::string &username, const std::string &password, cons
         Json::ValueConstIterator screen = std::find_if(rule.begin(), rule.end(), [](auto x) { return x["type"] == "On"; });
         if (screen != rule.end()) {
             if (screen->operator[]("args")[0].asString() != name) {
-                break;
+                continue;
             }
         }
         Json::ValueConstIterator between = std::find_if(rule.begin(), rule.end(), [](auto x) { return x["type"] == "Between"; });
@@ -113,7 +113,7 @@ void getNewConfig(const std::string &username, const std::string &password, cons
 
             int between_start = start_hours * 60 + start_mins;
 
-            std::string end_str = between->operator[]("args")[0].asString();
+            std::string end_str = between->operator[]("args")[1].asString();
 
             int end_hours = std::atoi(end_str.substr(0, end_str.find(":")).c_str());
             int end_mins = std::atoi(end_str.substr(end_str.find(":")+1, end_str.length()).c_str());
@@ -137,7 +137,7 @@ void getNewConfig(const std::string &username, const std::string &password, cons
                 times.push_back(i);
             }
             for (auto& time : times) {
-                if (time < between_start && time > end) {
+                if (time > between_start && time < end) {
                     TimePoints[time].surf = surfaces[img];
                     TimePoints[time].transition = transition_enum;
                 }
@@ -313,6 +313,7 @@ void doFade(SDL_Surface *pSurface, SDL_Window *pWindow) {
         SDL_UpdateWindowSurface(pWindow);
         SDL_Delay(1000/60);
     }
+    SDL_BlitScaled(pSurface,NULL,window_surf,NULL);
     SDL_UpdateWindowSurface(pWindow);
     SDL_FreeSurface(window_surf);
     SDL_FreeSurface(window_surf_copy);
