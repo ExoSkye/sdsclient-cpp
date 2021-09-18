@@ -233,7 +233,7 @@ int main() {
 
     const std::string ip = root["network"].get("ip", "0.0.0.0").asString();
     const int port = root["network"].get("port", 17420).asInt();
-
+    const std::string scheme = root["network"].get("scheme","http").asString();
     const std::string username = root["auth"].get("user", "a").asString();
     const std::string password = root["auth"].get("pass", "c").asString();
 
@@ -253,6 +253,7 @@ int main() {
         else {
             last_minute = cur_minute;
         }
+
 
         httplib::Client client(ip, port);
 
@@ -306,11 +307,23 @@ int main() {
 }
 
 void doSlide(SDL_Surface *pSurface, SDL_Window *pWindow) {
-
+    SDL_Surface* window_surf = SDL_GetWindowSurface(pWindow);
+    SDL_Surface* window_surf_copy = SDL_CreateRGBSurface(0,window_surf->w,window_surf->h,window_surf->format->BitsPerPixel,0,0,0,0);
+    SDL_BlitSurface(window_surf,NULL,window_surf_copy,NULL);
+    SDL_Surface* scaled_pSurface = SDL_CreateRGBSurface(0,window_surf->w,window_surf->h,window_surf->format->BitsPerPixel,0,0,0,0);
+    SDL_BlitScaled(pSurface,NULL,scaled_pSurface,NULL);
+    for (int i = 0; i < scaled_pSurface->w; i++) {
+        SDL_Rect area {0,0,i,scaled_pSurface->h};
+        SDL_BlitSurface(scaled_pSurface,&area,window_surf,NULL);
+        SDL_UpdateWindowSurface(pWindow);
+    }
+    SDL_BlitScaled(pSurface,NULL,window_surf,NULL);
+    SDL_UpdateWindowSurface(pWindow);
+    SDL_FreeSurface(window_surf_copy);
+    SDL_FreeSurface(scaled_pSurface);
 }
 
 void doFade(SDL_Surface *pSurface, SDL_Window *pWindow) {
-    printf("Doing fade");
     SDL_Surface* window_surf = SDL_GetWindowSurface(pWindow);
 
     SDL_Surface* window_surf_copy = SDL_CreateRGBSurface(0,window_surf->w,window_surf->h,window_surf->format->BitsPerPixel,rmask,gmask,bmask,amask);
@@ -322,7 +335,6 @@ void doFade(SDL_Surface *pSurface, SDL_Window *pWindow) {
         SDL_BlitSurface(window_surf_copy,NULL,window_alpha,NULL);
         SDL_BlitSurface(window_alpha,NULL,window_surf,NULL);
         SDL_UpdateWindowSurface(pWindow);
-        SDL_Delay(1000/60);
     }
     SDL_BlitScaled(pSurface,NULL,window_surf,NULL);
     SDL_UpdateWindowSurface(pWindow);
