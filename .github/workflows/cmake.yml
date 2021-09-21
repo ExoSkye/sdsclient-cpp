@@ -93,26 +93,26 @@ jobs:
         release_name: ${{ env.BUILD_TAG }}
         draft: false
         prerelease: false
-    - name: Upload Release Assets (Windows Debug Build)
-      id: upload-release-asset-win-debug
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: SDSClient_Windows_Debug.exe
-        asset_path: dist/windows-latest_Debug/SDSClient_Windows_Debug.exe
-        asset_content_type: application/vnd.microsoft.portable-executable
-    - name: Upload Release Assets (Windows Release Build)
-      id: upload-release-asset-win-release
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: SDSClient_Windows_Release.exe
-        asset_path: dist/windows-latest_Release/SDSClient_Windows_Release.exe
-        asset_content_type: application/vnd.microsoft.portable-executable
+   # - name: Upload Release Assets (Windows Debug Build)
+   #   id: upload-release-asset-win-debug
+   #   uses: actions/upload-release-asset@v1.0.1
+   #   env:
+   #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+   #   with:
+   #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+   #     asset_name: SDSClient_Windows_Debug.exe
+   #     asset_path: dist/windows-latest_Debug/SDSClient_Windows_Debug.exe
+   #     asset_content_type: application/vnd.microsoft.portable-executable
+   # - name: Upload Release Assets (Windows Release Build)
+   #   id: upload-release-asset-win-release
+   #   uses: actions/upload-release-asset@v1.0.1
+   #   env:
+   #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+   #   with:
+   #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+   #     asset_name: SDSClient_Windows_Release.exe
+   #     asset_path: dist/windows-latest_Release/SDSClient_Windows_Release.exe
+   #     asset_content_type: application/vnd.microsoft.portable-executable
         
     - name: Upload Release Assets (Linux Debug Build)
       id: upload-release-asset-linux-debug
