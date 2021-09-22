@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+  UPLOAD_URL=
+
 
 jobs:
 
@@ -62,22 +62,22 @@ jobs:
     #    cmake -E copy ${{github.workspace}}\\build\\${{ matrix.build_type }}\\SDSClient.exe ${{github.workspace}}\\build\\SDSClient.exe
     #    cmake -E rename ${{github.workspace}}\\build\\SDSClient.exe ${{github.workspace}}\\build\\SDSClient_Windows_${{ matrix.build_type }}.exe
       
-    #- name: Rename ouptut file (Linux)
-    #  if: matrix.os == 'ubuntu-latest'
-    #  run: cmake -E rename ${{github.workspace}}/build/SDSClient ${{github.workspace}}/build/SDSClient_Linux_${{ matrix.build_type }}
+    - name: Rename ouptut file (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: cmake -E rename ${{github.workspace}}/build/bin/SDSClient ${{github.workspace}}/build/bin/SDSClient_Linux_${{ matrix.build_type }}
       
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.3
       with:
         name: ${{ matrix.os }}_${{ matrix.build_type }}
         path: |
-          ${{github.workspace}}/build/bin/SDSClient
+          ${{github.workspace}}/build/bin/SDSClient_Linux_${{ matrix.build_type }}
           ${{github.workspace}}/build/lib/libSDL2*
           ${{github.workspace}}/build/lib/libcpp-base64-impl.so
           ${{github.workspace}}/build/lib/libsdl2-image-impl.so
           
-  Release:
-    name: Release
+  CreateRelease:
+    name: Create release
     runs-on: ubuntu-latest
     needs: Build
     env:
@@ -100,6 +100,49 @@ jobs:
         release_name: ${{ env.BUILD_TAG }}
         draft: false
         prerelease: false
+
+    - name: Set the upload URL
+      run: |
+        echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
+
+  UploadAsset:
+    name: Upload 
+    needs: CreateRelease
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        build_type: ["Release", "Debug"]
+
+    steps:
+    - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: dist
+
+    - name: Upload Release Assets (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_name: SDSClient_Linux_${{ matrix.build_type }}
+        asset_path: dist/ubuntu-latest_Debug/bin/SDSClient_Linux_${{ matrix.build_type }}
+        asset_content_type: application/x-executable
+
+    - name: Upload Release Assets (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_name: SDSClient_Windows_${{ matrix.build_type }}.exe
+        asset_path: dist/ubuntu-latest_Debug/bin/SDSClient_Windows_${{ matrix.build_type }}.exe
+        asset_content_type: application/x-executable
+
    # - name: Upload Release Assets (Windows Debug Build)
    #   id: upload-release-asset-win-debug
    #   uses: actions/upload-release-asset@v1.0.1
@@ -129,7 +172,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_name: SDSClient_Linux_Debug
-        asset_path: dist/ubuntu-latest_Debug/SDSClient_Linux_Debug
+        asset_path: dist/ubuntu-latest_Debug/bin/SDSClient_Linux_Debug
         asset_content_type: application/x-executable
     - name: Upload Release Assets (Linux Release Build)
       id: upload-release-asset-linux-release
@@ -139,5 +182,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_name: SDSClient_Linux_Release
-        asset_path: dist/ubuntu-latest_Release/SDSClient_Linux_Release
+        asset_path: dist/ubuntu-latest_Release/bin/ SDSClient_Linux_Release
         asset_content_type: application/x-executable
