@@ -100,10 +100,6 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Set the upload URL
-      run: |
-        echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
-
   UploadAsset:
     name: Upload 
     needs: CreateRelease
@@ -126,7 +122,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ env.UPLOAD_URL }}
+        upload_url: ${{ jobs.CreateRelease.steps.create_release.outputs.upload_url }}
         asset_name: SDSClient_Linux_${{ matrix.build_type }}
         asset_path: dist/ubuntu-latest_Debug/bin/SDSClient_Linux_${{ matrix.build_type }}
         asset_content_type: application/x-executable
@@ -137,7 +133,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ env.UPLOAD_URL }}
+        upload_url: ${{ jobs.CreateRelease.steps.create_release.outputs.upload_url }}
         asset_name: SDSClient_Windows_${{ matrix.build_type }}.exe
         asset_path: dist/ubuntu-latest_Debug/bin/SDSClient_Windows_${{ matrix.build_type }}.exe
         asset_content_type: application/x-executable
