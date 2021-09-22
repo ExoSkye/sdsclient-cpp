@@ -70,8 +70,14 @@ jobs:
       uses: actions/upload-artifact@v2.2.3
       with:
         name: ${{ matrix.os }}_${{ matrix.build_type }}
-        path: ${{github.workspace}}/build/
-      
+        path: |
+          ${{github.workspace}}/build/bin/SDSClient
+          ${{github.workspace}}/build/lib/libSDL2-2.0d.so
+          ${{github.workspace}}/build/lib/libSDL2-2.0d.so.0
+          ${{github.workspace}}/build/lib/libSDL2-2.0d.so.0.16.0
+          ${{github.workspace}}/build/lib/libcpp-base64-impl.so
+          ${{github.workspace}}/build/lib/libsdl2-image-impl.so
+          
   Release:
     name: Release
     runs-on: ubuntu-latest
