@@ -14,4 +14,7 @@ if(NOT jsoncpp_POPULATED)
     FetchContent_Populate(jsoncpp)
     message(STATUS "Fetched jsoncpp 1.9.4")
 endif()
+
+set(BUILD_STATIC_LIBS ON)
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(${jsoncpp_SOURCE_DIR})
