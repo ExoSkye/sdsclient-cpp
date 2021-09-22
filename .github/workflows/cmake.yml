@@ -117,9 +117,9 @@ jobs:
 
     steps:
     - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: dist
+      uses: actions/download-artifact@v2
+      with:
+        path: dist
 
     - name: Upload Release Assets (Linux)
       if: matrix.os == 'ubuntu-latest'
