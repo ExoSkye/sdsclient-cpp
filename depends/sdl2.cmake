@@ -14,4 +14,6 @@ if(NOT sdl2_POPULATED)
     message(STATUS "Fetched sdl2 2.0.16")
 endif()
 
+set(BUILD_SHARED_LIBS ON)
+set(VIDEO_KMSDRM ON)
 add_subdirectory(${sdl2_SOURCE_DIR})
