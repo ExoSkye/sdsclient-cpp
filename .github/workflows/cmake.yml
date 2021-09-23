@@ -138,8 +138,8 @@ jobs:
       with:
         files: |
           dist/ubuntu-latest_${{ matrix.build_type }}/SDSClient_Linux_${{ matrix.build_type }}
-          dist/ubuntu-latest_${{ matrix.build_type }}/cpp-base64-impl.dll
-          dist/ubuntu-latest_${{ matrix.build_type }}/sdl2-image-impl.dll
+          dist/ubuntu-latest_${{ matrix.build_type }}/cpp-base64-impl.so
+          dist/ubuntu-latest_${{ matrix.build_type }}/sdl2-image-impl.so
           
         dest: Linux_${{ matrix.build_type }}.zip
         
@@ -149,8 +149,8 @@ jobs:
       with:
         files: |
           dist/ubuntu-latest_${{ matrix.build_type }}/SDSClient_Windows_${{ matrix.build_type }}.exe
-          dist/ubuntu-latest_${{ matrix.build_type }}/libcpp-base64-impl.so
-          dist/ubuntu-latest_${{ matrix.build_type }}/libsdl2-image-impl.so
+          dist/ubuntu-latest_${{ matrix.build_type }}/libcpp-base64-impl.dll
+          dist/ubuntu-latest_${{ matrix.build_type }}/libsdl2-image-impl.dll
           
         dest: Linux_${{ matrix.build_type }}.zip
 
