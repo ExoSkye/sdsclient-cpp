@@ -1,0 +1,179 @@
+name: CMake
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  UPLOAD_URL:
+
+jobs:
+
+  Init:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Build Tag
+      run: |
+        export BUILD_TAG=build-$GITHUB_SHA
+        echo "BUILD_TAG=$BUILD_TAG" >> $GITHUB_ENV
+        echo -n $BUILD_TAG > tag
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: tag
+        path: tag
+
+  Build:
+    name: Build
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        build_type: ["Release", "Debug"]
+
+    runs-on: ${{ matrix.os }}
+
+    needs: Init
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      # Build your program with the given configuration
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{ matrix.build_type }}
+        ls ${{github.workspace}}/build/bin
+        ls ${{github.workspace}}/build/lib
+      
+    #- name: Rename ouptut file (Windows)
+    #  if: matrix.os == 'windows-latest'
+    #  run: |
+    #    cmake -E copy ${{github.workspace}}\\build\\${{ matrix.build_type }}\\SDSClient.exe ${{github.workspace}}\\build\\SDSClient.exe
+    #    cmake -E rename ${{github.workspace}}\\build\\SDSClient.exe ${{github.workspace}}\\build\\SDSClient_Windows_${{ matrix.build_type }}.exe
+      
+    - name: Rename ouptut file (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: cmake -E rename ${{github.workspace}}/build/bin/SDSClient ${{github.workspace}}/build/bin/SDSClient_Linux_${{ matrix.build_type }}
+      
+    - name: Upload a Build Artifact (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        name: ${{ matrix.os }}_${{ matrix.build_type }}
+        path: |
+          ${{github.workspace}}/build/bin/SDSClient_Linux_${{ matrix.build_type }}
+          ${{github.workspace}}/build/lib/libSDL2*
+          ${{github.workspace}}/build/lib/libcpp-base64-impl.so
+          ${{github.workspace}}/build/lib/libsdl2-image-impl.so
+          
+    - name: Upload a Build Artifact (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        name: ${{ matrix.os }}_${{ matrix.build_type }}
+        path: |
+          ${{github.workspace}}/build/bin/SDSClient_Windows_${{ matrix.build_type }}.exe
+          ${{github.workspace}}/build/lib/libSDL2*
+          ${{github.workspace}}/build/lib/cpp-base64-impl.dll
+          ${{github.workspace}}/build/lib/sdl2-image-impl.dll
+          
+  CreateRelease:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: Build
+    env:
+      BUILD_TAG:
+
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: dist
+    - name: Get Package Info
+      run: |
+        echo "BUILD_TAG=$(cat dist/tag/tag)" >> $GITHUB_ENV
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.BUILD_TAG }}
+        release_name: ${{ env.BUILD_TAG }}
+        draft: false
+        prerelease: false
+
+  UploadAsset:
+    name: Upload 
+    needs: CreateRelease
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        build_type: ["Release", "Debug"]
+
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: dist
+        
+    - name: Zip required files (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: vimtor/action-zip@v1
+      with:
+        files: |
+          dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_Linux_${{ matrix.build_type }}
+          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64-impl.so
+          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image-impl.so
+          
+        dest: Linux_${{ matrix.build_type }}.zip
+        
+    - name: Zip required files (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: vimtor/action-zip@v1
+      with:
+        files: |
+          dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_Windows_${{ matrix.build_type }}.exe
+          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64-impl.dll
+          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image-impl.dll
+          
+        dest: Linux_${{ matrix.build_type }}.zip
+
+    - name: Upload Release Assets (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.CreateRelease.outputs.upload_url }}
+        asset_name: SDSClient_Linux_${{ matrix.build_type }}.zip
+        asset_path: Linux_${{ matrix.build_type }}.zip
+        asset_content_type: application/zip
+
+    - name: Upload Release Assets (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.CreateRelease.outputs.upload_url }}
+        asset_name: SDSClient_Windows_${{ matrix.build_type }}.zip
+        asset_path: Windows_${{ matrix.build_type }}.zip
+        asset_content_type: application/zip
+        
+  
