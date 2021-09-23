@@ -65,8 +65,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: cmake -E rename ${{github.workspace}}/build/bin/SDSClient ${{github.workspace}}/build/bin/SDSClient_Linux_${{ matrix.build_type }}
       
-    - name: Upload a Build Artifact (Linux)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.3
       with:
         name: ${{ matrix.os }}_${{ matrix.build_type }}
@@ -75,17 +74,6 @@ jobs:
           ${{github.workspace}}/build/lib/libSDL2*
           ${{github.workspace}}/build/lib/libcpp-base64-impl.so
           ${{github.workspace}}/build/lib/libsdl2-image-impl.so
-          
-    - name: Upload a Build Artifact (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v2.2.3
-      with:
-        name: ${{ matrix.os }}_${{ matrix.build_type }}
-        path: |
-          ${{github.workspace}}/build/bin/SDSClient_Windows_${{ matrix.build_type }}.exe
-          ${{github.workspace}}/build/lib/libSDL2*
-          ${{github.workspace}}/build/lib/cpp-base64-impl.dll
-          ${{github.workspace}}/build/lib/sdl2-image-impl.dll
           
   CreateRelease:
     name: Create release
@@ -131,28 +119,6 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         path: dist
-        
-    - name: Zip required files (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      uses: vimtor/action-zip@v1
-      with:
-        files: |
-          dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_Linux_${{ matrix.build_type }}
-          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64-impl.so
-          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image-impl.so
-          
-        dest: Linux_${{ matrix.build_type }}.zip
-        
-    - name: Zip required files (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: vimtor/action-zip@v1
-      with:
-        files: |
-          dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_Windows_${{ matrix.build_type }}.exe
-          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64-impl.dll
-          dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image-impl.dll
-          
-        dest: Linux_${{ matrix.build_type }}.zip
 
     - name: Upload Release Assets (Linux)
       if: matrix.os == 'ubuntu-latest'
@@ -161,9 +127,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.CreateRelease.outputs.upload_url }}
-        asset_name: SDSClient_Linux_${{ matrix.build_type }}.zip
-        asset_path: Linux_${{ matrix.build_type }}.zip
-        asset_content_type: application/zip
+        asset_name: SDSClient_Linux_${{ matrix.build_type }}
+        asset_path: dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_Linux_${{ matrix.build_type }}
+        asset_content_type: application/x-executable
 
     - name: Upload Release Assets (Windows)
       if: matrix.os == 'windows-latest'
@@ -172,8 +138,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.CreateRelease.outputs.upload_url }}
-        asset_name: SDSClient_Windows_${{ matrix.build_type }}.zip
-        asset_path: Windows_${{ matrix.build_type }}.zip
-        asset_content_type: application/zip
-        
-  
+        asset_name: SDSClient_Windows_${{ matrix.build_type }}.exe
+        asset_path: dist\\ubuntu-latest_${{ matrix.build_type }}\\bin/SDSClient_Windows_${{ matrix.build_type }}.exe
+        asset_content_type: application/x-executable
