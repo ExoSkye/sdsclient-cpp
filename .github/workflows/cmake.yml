@@ -120,6 +120,22 @@ jobs:
       with:
         path: dist
 
+    - name: Install 7zip and create archive (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt install p7zip-full
+        7z a Linux_${{ matrix.build_type }}.7z dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_*
+        7z a Linux_${{ matrix.build_type }}.7z dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64*
+        7z a Linux_${{ matrix.build_type }}.7z dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image*
+
+    - name: Install 7zip and create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install 7zip.portable --pre
+        7z a Windows_${{ matrix.build_type }}.7z dist/windows-latest_${{ matrix.build_type }}/bin/SDSClient_*
+        7z a Windows_${{ matrix.build_type }}.7z dist/windows-latest_${{ matrix.build_type }}/lib/cpp-base64*
+        7z a Windows_${{ matrix.build_type }}.7z dist/windows-latest_${{ matrix.build_type }}/lib/sdl2-image*
+
     - name: Upload Release Assets (Linux)
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-release-asset@v1.0.1
@@ -127,8 +143,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.CreateRelease.outputs.upload_url }}
-        asset_name: SDSClient_Linux_${{ matrix.build_type }}
-        asset_path: dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_Linux_${{ matrix.build_type }}
+        asset_name: SDSClient_Linux_${{ matrix.build_type }}.7z
+        asset_path: Linux_${{ matrix.build_type }}.7z
         asset_content_type: application/x-executable
 
     - name: Upload Release Assets (Windows)
@@ -138,6 +154,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.CreateRelease.outputs.upload_url }}
-        asset_name: SDSClient_Windows_${{ matrix.build_type }}.exe
-        asset_path: dist\\ubuntu-latest_${{ matrix.build_type }}\\bin/SDSClient_Windows_${{ matrix.build_type }}.exe
+        asset_name: SDSClient_Windows_${{ matrix.build_type }}.7z
+        asset_path: Windows_${{ matrix.build_type }}.7z
         asset_content_type: application/x-executable
