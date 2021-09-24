@@ -124,9 +124,12 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt install p7zip-full
-        7z a Linux_${{ matrix.build_type }}.7z dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_*
-        7z a Linux_${{ matrix.build_type }}.7z dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64*
-        7z a Linux_${{ matrix.build_type }}.7z dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image*
+        cp dist/ubuntu-latest_${{ matrix.build_type }}/bin/SDSClient_* .
+        cp dist/ubuntu-latest_${{ matrix.build_type }}/lib/libcpp-base64* .
+        cp dist/ubuntu-latest_${{ matrix.build_type }}/lib/libsdl2-image* .
+        7z a Linux_${{ matrix.build_type }}.7z SDSClient_*
+        7z a Linux_${{ matrix.build_type }}.7z libcpp-base64*
+        7z a Linux_${{ matrix.build_type }}.7z libsdl2-image*
 
     - name: Install 7zip and create archive (Windows)
       if: matrix.os == 'windows-latest'
